@@ -1,15 +1,45 @@
-{
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "chrome",
-            "request": "launch",
-            "name": "Launch Chrome against localhost",
-            "url": "https://rndltx.github.io/",
-            "webRoot": "${workspaceFolder}"
-        }
-    ]
+const { Octokit } = require("@octokit/rest");
+
+// Membuat instance Octokit dengan token akses personal
+const octokit = new Octokit({
+  auth: 'YOUR_PERSONAL_ACCESS_TOKEN'
+});
+
+// Menentukan pemilik repositori dan nama repositori
+const owner = 'rndltx';
+const repo = 'tester';
+
+// Menjalankan proses deployment (misalnya: deployment ke GitHub Pages)
+async function deploy() {
+  try {
+    // Membuat deployment
+    const deployment = await octokit.repos.createDeployment({
+      owner,
+      repo,
+      ref: 'tester', // Ganti dengan branch yang diinginkan
+      required_contexts: [], // Opsional, gunakan jika ingin memerlukan linting atau tes yang lulus sebelum deployment
+      environment: 'production', // Ganti dengan environment yang diinginkan
+      description: 'Deployment triggered by script' // Deskripsi opsional
+    });
+
+    // Mengumpulkan informasi deployment yang baru saja dibuat
+    const deploymentId = deployment.data.id;
+
+    // Menjalankan deployment
+    await octokit.repos.createDeploymentStatus({
+      owner,
+      repo,
+      deployment_id: deploymentId,
+      state: 'success', // Ganti dengan 'pending', 'success', 'error', atau 'failure' sesuai kebutuhan
+      environment_url: 'https://rndltx.github.io', // URL aplikasi setelah deployment
+      description: 'Deployment successful' // Deskripsi opsional
+    });
+
+    console.log('Deployment successful!');
+  } catch (error) {
+    console.error('Error deploying:', error);
+  }
 }
+
+// Menjalankan proses deployment
+deploy();
